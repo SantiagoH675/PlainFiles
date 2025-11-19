@@ -13,178 +13,148 @@ foreach (var person in people)
 {
     Console.WriteLine($"ID: {person.Id}, Nombre: {person.Name}, Edad: {person.Age}");
 }
+int nextId = people.Count > 0 ? people.Max(p => p.Id) + 1 : 1;
+string option;
 
-//var manualCsv = new ManualCsvHelper();
-//var people = manualCsv.ReadCsv($"{listName}.csv");
-//var option = string.Empty;
+do
+{
+    option = MyMenu();
+    Console.WriteLine();
 
-//do
-//{
-//    option = MyMenu();
-//    Console.WriteLine();
-//    Console.WriteLine();
-//    switch (option)
-//    {
-//        case "1":
-//            AddPerson();
-//            break;
+    switch (option)
+    {
+        case "1":
+            AddPerson();
+            break;
 
-//        case "2":
-//            ListPeople();
-//            break;
+        case "2":
+            ListPeople();
+            break;
 
-//        case "3":
-//            SaveFile(people, listName);
-//            Console.WriteLine("Archivo guardado.");
-//            break;
+        case "3":
+            SaveFile(people, listName);
+            Console.WriteLine("Archivo guardado.");
+            break;
 
-//        case "4":
-//            DeletePerson();
-//            break;
+        case "4":
+            DeletePerson();
+            break;
 
-//        case "5":
-//            SortData();
-//            break;
+        case "5":
+            SortData();
+            break;
 
-//        case "0":
-//            Console.WriteLine("Saliendo...");
-//            break;
+        case "0":
+            Console.WriteLine("Saliendo...");
+            break;
 
-//        default:
-//            Console.WriteLine("Opción no válida.");
-//            break;
-//    }
-//} while (option != "0");
+        default:
+            Console.WriteLine("Opción no válida.");
+            break;
+    }
+} while (option != "0");
+void AddPerson()
+{
+    Console.Write("Digite el nombre: ");
+    var name = Console.ReadLine() ?? "";
 
-//void SortData()
-//{
-//    int order;
-//    do
-//    {
-//        Console.Write("Por cual campo desea ordenar 0. Nombre, 1. Apellido, 2. Edad? ");
-//        var orderString = Console.ReadLine();
-//        int.TryParse(orderString, out order);
-//        if (order < 0 || order > 2)
-//        {
-//            Console.WriteLine("Orden no válido. Intente de nuevo.");
-//        }
-//    } while (order < 0 || order > 2);
+    Console.Write("Digite la edad: ");
+    int.TryParse(Console.ReadLine(), out int age);
 
-//    int type;
-//    do
-//    {
-//        Console.Write("Desea ordenar 0. Ascendente, 1. Descendente? ");
-//        var typeString = Console.ReadLine();
-//        int.TryParse(typeString, out type);
-//        if (type < 0 || type > 1)
-//        {
-//            Console.WriteLine("Orden no válido. Intente de nuevo.");
-//        }
-//    } while (type < 0 || type > 1);
+    people.Add(new Person
+    {
+        Id = nextId++,
+        Name = name,
+        Age = age
+    });
 
-//    people.Sort((a, b) =>
-//    {
-//        int cmp;
-//        if (order == 2) // Edad: comparar como número
-//        {
-//            bool parsedA = int.TryParse(a[2], out var ageA);
-//            bool parsedB = int.TryParse(b[2], out var ageB);
+    Console.WriteLine("Persona agregada.");
+}
+void ListPeople()
+{
+    Console.WriteLine("ID | Nombre | Edad");
 
-//            // Si no se puede parsear, tratamos como -infinito para que queden al inicio
-//            if (!parsedA) ageA = int.MinValue;
-//            if (!parsedB) ageB = int.MinValue;
+    foreach (var p in people)
+    {
+        Console.WriteLine($"{p.Id} | {p.Name} | {p.Age}");
+    }
+}
+void DeletePerson()
+{
+    Console.Write("Digite el nombre de la persona a eliminar: ");
+    var name = Console.ReadLine();
 
-//            cmp = ageA.CompareTo(ageB);
-//        }
-//        else // Nombre o Apellido: comparación de texto, ignorando mayúsculas/minúsculas
-//        {
-//            cmp = string.Compare(a[order], b[order], StringComparison.OrdinalIgnoreCase);
-//        }
+    var matches = people
+        .Where(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+        .ToList();
 
-//        return type == 0 ? cmp : -cmp; // 0 = ascendente, 1 = descendente
-//    });
+    if (matches.Count == 0)
+    {
+        Console.WriteLine("No se encontraron personas con ese nombre.");
+        return;
+    }
 
-//    Console.WriteLine("Datos ordenados.");
-//}
+    for (int i = 0; i < matches.Count; i++)
+    {
+        Console.WriteLine($"ID local {i}: {matches[i].Id} - {matches[i].Name} ({matches[i].Age})");
+    }
 
-//void ListPeople()
-//{
-//    Console.WriteLine("Lista de personas:");
-//    Console.WriteLine($"Nombres|Apellidos|Edad");
-//    foreach (var person in people)
-//    {
-//        Console.WriteLine($"{person[0]}|{person[1]}|{person[2]}");
-//    }
-//}
+    int index;
+    do
+    {
+        Console.Write("Seleccione el ID local para borrar (-1 para cancelar): ");
+        int.TryParse(Console.ReadLine(), out index);
+    }
+    while (index < -1 || index >= matches.Count);
 
-//void AddPerson()
-//{
-//    Console.Write("Digite el nombre: ");
-//    var name = Console.ReadLine();
-//    Console.Write("Digite el apellido: ");
-//    var lastName = Console.ReadLine();
-//    Console.Write("Digite la edad: ");
-//    var age = Console.ReadLine();
-//    people.Add([name ?? string.Empty, lastName ?? string.Empty, age ?? string.Empty]);
-//}
+    if (index == -1)
+    {
+        Console.WriteLine("Cancelado.");
+        return;
+    }
 
-//void DeletePerson()
-//{
-//    Console.Write("Digite el nombre: ");
-//    var nameToDelete = Console.ReadLine();
-//    var peopleToDelete = people
-//        .Where(p => p[0].Equals(nameToDelete, StringComparison.OrdinalIgnoreCase))
-//        .ToList();
+    var toRemove = matches[index];
+    people.Remove(toRemove);
 
-//    if (peopleToDelete.Count == 0)
-//    {
-//        Console.WriteLine("No se encontraron personas con ese nombre.");
-//        return;
-//    }
+    Console.WriteLine("Persona eliminada.");
+}
+void SortData()
+{
+    Console.Write("Ordenar por: 0.Nombre, 1.Edad, 2.ID: ");
+    int.TryParse(Console.ReadLine(), out int order);
 
-//    for (int i = 0; i < peopleToDelete.Count; i++)
-//    {
-//        Console.WriteLine($"ID: {i} - Nombres: {peopleToDelete[i][0]} {peopleToDelete[i][1]}, Edad: {peopleToDelete[i][2]}");
-//    }
+    Console.Write("Tipo: 0.Ascendente, 1.Descendente: ");
+    int.TryParse(Console.ReadLine(), out int type);
 
-//    int id;
-//    do
-//    {
-//        Console.Write("Digite el ID del elemento que desea borrar, o -1 para cancelar? ");
-//        var idString = Console.ReadLine();
-//        int.TryParse(idString, out id);
-//        if (id < -1 || id > peopleToDelete.Count)
-//        {
-//            Console.WriteLine("ID no válido. Intente de nuevo.");
-//        }
-//    } while (id < -1 || id > peopleToDelete.Count);
+    people.Sort((a, b) =>
+    {
+        int cmp = order switch
+        {
+            0 => string.Compare(a.Name, b.Name, true),
+            1 => a.Age.CompareTo(b.Age),
+            2 => a.Id.CompareTo(b.Id),
+            _ => 0
+        };
 
-//    if (id == -1)
-//    {
-//        Console.WriteLine("Operación cancelada.");
-//        return;
-//    }
+        return type == 0 ? cmp : -cmp;
+    });
 
-//    var personToRemove = peopleToDelete[id];
-//    people.Remove(personToRemove);
-//}
+    Console.WriteLine("Datos ordenados.");
+}
+string MyMenu()
+{
+    Console.WriteLine();
+    Console.WriteLine("1. Adicionar");
+    Console.WriteLine("2. Mostrar");
+    Console.WriteLine("3. Grabar");
+    Console.WriteLine("4. Eliminar");
+    Console.WriteLine("5. Ordenar");
+    Console.WriteLine("0. Salir");
+    Console.Write("Seleccione una opción: ");
+    return Console.ReadLine() ?? "";
+}
 
-//string MyMenu()
-//{
-//    Console.WriteLine();
-//    Console.WriteLine();
-//    Console.WriteLine("1. Adicionar.");
-//    Console.WriteLine("2. Mostrar.");
-//    Console.WriteLine("3. Grabar.");
-//    Console.WriteLine("4. Eliminar.");
-//    Console.WriteLine("5. Ordenar.");
-//    Console.WriteLine("0. Salir.");
-//    Console.Write("Seleccione una opción: ");
-//    return Console.ReadLine() ?? string.Empty;
-//}
-//SaveFile(people, listName);
-
-//void SaveFile(List<string[]> people, string? listName)
-//{
-//    manualCsv.WriteCsv($"{listName}.csv", people);
-//}
+void SaveFile(List<Person> people, string listName)
+{
+    helper.Write($"{listName}.csv", people);
+}
